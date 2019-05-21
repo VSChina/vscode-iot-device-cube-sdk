@@ -57,6 +57,61 @@ export class FileSystem {
       }
     );
   }
+
+  static async writeFile(localPath: string, data: string | Buffer) {
+    return new Promise(async (resolve: (value: void) => void) => {
+      const transferFileCallbackName = (await vscode.commands.executeCommand(
+        'iotcube.fsTransferFile',
+        localPath
+      )) as string;
+      const base64Data =
+        typeof data === 'string'
+          ? Buffer.from(data).toString('base64')
+          : data.toString('base64');
+      await vscode.commands.executeCommand(
+        transferFileCallbackName,
+        base64Data
+      );
+      await vscode.commands.executeCommand(transferFileCallbackName, 'EOF');
+      resolve();
+    });
+  }
+
+  static async fileExists(localPath: string) {
+    return (await vscode.commands.executeCommand(
+      'iotcube.fsFileExists'
+    )) as boolean;
+  }
+}
+
+export class Utility {
+  static require<T extends object>(modId: string): T {
+    return new Proxy((() => {}) as T, {
+      get: async (_, key, reciver) => {
+        const localModuleRaw = (await vscode.commands.executeCommand(
+          'iotcube.localRequire',
+          modId,
+          key
+        )) as string;
+        const localModuleInfo = JSON.parse(localModuleRaw);
+        if (localModuleInfo.type === 'function') {
+          // tslint:disable-next-line:no-any
+          return async (...args: any[]) => {
+            const modRaw = (await vscode.commands.executeCommand(
+              'iotcube.localRequire',
+              modId,
+              key,
+              args
+            )) as string;
+            const modInfo = JSON.parse(modRaw);
+            return modInfo.res as string;
+          };
+        } else {
+          return localModuleInfo.res as string;
+        }
+      },
+    });
+  }
 }
 
 export class SSH {
