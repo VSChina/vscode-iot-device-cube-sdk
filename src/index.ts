@@ -86,7 +86,7 @@ export class FileSystem {
 
   static async isDirectory(localPath: string) {
     return (await vscode.commands.executeCommand(
-      'iotcube.fsisDirectory',
+      'iotcube.fsIsDirectory',
       localPath
     )) as boolean;
   }
