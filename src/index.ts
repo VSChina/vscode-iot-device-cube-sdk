@@ -77,10 +77,32 @@ export class FileSystem {
     });
   }
 
-  static async fileExists(localPath: string) {
+  static async exists(localPath: string) {
     return (await vscode.commands.executeCommand(
-      'iotcube.fsFileExists'
+      'iotcube.fsExists',
+      localPath
     )) as boolean;
+  }
+
+  static async isDirectory(localPath: string) {
+    return (await vscode.commands.executeCommand(
+      'iotcube.fsisDirectory',
+      localPath
+    )) as boolean;
+  }
+
+  static async isFile(localPath: string) {
+    return (await vscode.commands.executeCommand(
+      'iotcube.fsIsFile',
+      localPath
+    )) as boolean;
+  }
+
+  static async mkDir(localPath: string) {
+    return (await vscode.commands.executeCommand(
+      'iotcube.fsMkDir',
+      localPath
+    )) as void;
   }
 }
 
