@@ -23,6 +23,20 @@ export class FileSystem {
     )) as Volume[];
   }
 
+  static async readFile(localPath: string, encoding?: string) {
+    const data = (await vscode.commands.executeCommand(
+      'iotcube.fsReadFile',
+      localPath,
+      encoding
+    )) as string;
+
+    const dataBuffer = Buffer.from(data, 'base64');
+    if (encoding) {
+      return dataBuffer.toString(encoding);
+    }
+    return dataBuffer;
+  }
+
   static async copyFile(sourcePath: string, targetPath: string) {
     return (await vscode.commands.executeCommand(
       'iotcube.fsCopyFile',
