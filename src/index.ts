@@ -56,13 +56,17 @@ export class FileSystem {
           'iotcube.fsTransferFile',
           localPath
         )) as string;
+        const data:string[] = [];
         const readStream = fs.createReadStream(remotePath, 'base64');
         readStream.on('data', (chunk: string) => {
-          vscode.commands.executeCommand(transferFileCallbackName, chunk);
+          data.push(chunk);
         });
-        readStream.on('close', () => {
+        readStream.on('close', async () => {
           readStream.destroy();
-          vscode.commands.executeCommand(transferFileCallbackName, 'EOF');
+          for (const chunk of data) {
+            await vscode.commands.executeCommand(transferFileCallbackName, chunk);
+          }
+          await vscode.commands.executeCommand(transferFileCallbackName, 'EOF');
           resolve();
         });
         readStream.on('error', (error: Error) => {
