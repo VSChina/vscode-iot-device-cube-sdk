@@ -56,7 +56,7 @@ export class FileSystem {
           'iotcube.fsTransferFile',
           localPath
         )) as string;
-        const data:string[] = [];
+        const data: string[] = [];
         const readStream = fs.createReadStream(remotePath, 'base64');
         readStream.on('data', (chunk: string) => {
           data.push(chunk);
@@ -64,7 +64,10 @@ export class FileSystem {
         readStream.on('close', async () => {
           readStream.destroy();
           for (const chunk of data) {
-            await vscode.commands.executeCommand(transferFileCallbackName, chunk);
+            await vscode.commands.executeCommand(
+              transferFileCallbackName,
+              chunk
+            );
           }
           await vscode.commands.executeCommand(transferFileCallbackName, 'EOF');
           resolve();
@@ -254,6 +257,13 @@ export class SSH {
       this._id,
       localFolderPath,
       remoteFolderPath
+    )) as void;
+  }
+
+  async clipboardCopy(text: string) {
+    return (await vscode.commands.executeCommand(
+      'iotcube.clipboardCopy',
+      text
     )) as void;
   }
 }
