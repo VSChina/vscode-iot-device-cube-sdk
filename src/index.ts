@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventEmitter } from 'events';
+var adm_zip = require('adm-zip');
 
 interface DeviceInfo {
   id: string;
@@ -77,6 +78,46 @@ export class FileSystem {
         });
       }
     );
+  }
+
+  static async transferFolder(remotePath: string, localPath: string){
+    return new Promise(
+      async (
+        resolve: (value: void) => void,
+        reject: (reason: Error) => void
+      ) => {
+        const zipFile = remotePath + '_' + String(Date.now()) + '.zip';
+
+        var zip = new adm_zip();
+        try{
+          await zip.addLocalFolder(remotePath);  
+          await zip.writeZip(zipFile);  
+        } catch (err) {
+          reject(err);
+          return;
+        }
+
+        var sourcePath,  targetPath;
+        await FileSystem.transferFile(zipFile, localPath).then(function success(){
+          sourcePath = path.join(localPath, path.basename(zipFile));
+          targetPath = sourcePath.substr(0, sourcePath.length-4);
+          vscode.commands.executeCommand('iotcube.unzipFile', sourcePath, targetPath).then(function success() {
+          }, function failed(err) {
+            reject(err);
+          });
+          //delete zip file in container
+          fs.unlink(zipFile, function(err) {
+            if (err) {
+              vscode.window.showWarningMessage("Failed to delete zip file on remote machine");
+            }
+          });
+        }, function failed(err) {
+          reject(err);
+        } );
+
+        resolve(targetPath);
+      }
+    );   
   }
 
   static async writeFile(localPath: string, data: string | Buffer) {
@@ -252,10 +293,20 @@ export class SSH {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
     }
+    const tempFolder = (await vscode.commands.executeCommand(
+      'iotcube.fsGetTempDir'
+    )) as string;
+    var tempFolderPath;
+    await FileSystem.transferFolder(localFolderPath, tempFolder).then(function success(data) {
+      tempFolderPath = data;
+    }, function failed (err){
+      throw new Error('Failed to transfer folder from container to local machine: ' + err);
+    });
+
     return (await vscode.commands.executeCommand(
       'iotcube.sshUploadFolder',
       this._id,
-      localFolderPath,
+      tempFolderPath,
       remoteFolderPath
     )) as void;
   }
