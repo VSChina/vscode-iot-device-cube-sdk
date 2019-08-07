@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventEmitter } from 'events';
-var adm_zip = require('adm-zip');
+import * as adm_zip from 'adm-zip';
 
 interface DeviceInfo {
   id: string;
@@ -83,39 +83,30 @@ export class FileSystem {
   static async transferFolder(remotePath: string, localPath: string){
     return new Promise(
       async (
-        resolve: (value: void) => void,
+        resolve: (value: string) => void,
         reject: (reason: Error) => void
       ) => {
-        const zipFile = remotePath + '_' + String(Date.now()) + '.zip';
-
-        var zip = new adm_zip();
+        const zipFile = remotePath + '_' + Date.now() + '.zip';
+        const zip = new adm_zip();
+        var sourcePath, targetPath;
         try{
           await zip.addLocalFolder(remotePath);  
-          await zip.writeZip(zipFile);  
+          await zip.writeZip(zipFile);
+          await FileSystem.transferFile(zipFile, localPath);
+          sourcePath = path.join(localPath, path.basename(zipFile));
+          targetPath = sourcePath.substr(0, sourcePath.length-4);
+          await vscode.commands.executeCommand('iotcube.unzipFile', sourcePath, targetPath);
+          //delete zip file in container
+          fs.unlink(zipFile, function(err) {
+            if (err) {
+              vscode.window.showWarningMessage("Failed to delete zip file in container");
+            }
+          });
+          resolve(targetPath);  
         } catch (err) {
           reject(err);
           return;
         }
-
-        var sourcePath,  targetPath;
-        await FileSystem.transferFile(zipFile, localPath).then(function success(){
-          sourcePath = path.join(localPath, path.basename(zipFile));
-          targetPath = sourcePath.substr(0, sourcePath.length-4);
-          vscode.commands.executeCommand('iotcube.unzipFile', sourcePath, targetPath).then(function success() {
-          }, function failed(err) {
-            reject(err);
-          });
-          //delete zip file in container
-          fs.unlink(zipFile, function(err) {
-            if (err) {
-              vscode.window.showWarningMessage("Failed to delete zip file on remote machine");
-            }
-          });
-        }, function failed(err) {
-          reject(err);
-        } );
-
-        resolve(targetPath);
       }
     );   
   }
@@ -297,11 +288,11 @@ export class SSH {
       'iotcube.fsGetTempDir'
     )) as string;
     var tempFolderPath;
-    await FileSystem.transferFolder(localFolderPath, tempFolder).then(function success(data) {
-      tempFolderPath = data;
-    }, function failed (err){
+    try{
+      tempFolderPath = await FileSystem.transferFolder(localFolderPath, tempFolder);
+    } catch (err) {
       throw new Error('Failed to transfer folder from container to local machine: ' + err);
-    });
+    }
 
     return (await vscode.commands.executeCommand(
       'iotcube.sshUploadFolder',
