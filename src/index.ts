@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventEmitter } from 'events';
+import * as util from 'util';
+import * as AdmZip from 'adm-zip';
 
 interface DeviceInfo {
   id: string;
@@ -77,6 +79,39 @@ export class FileSystem {
         });
       }
     );
+  }
+
+  static async transferFolder(remotePath: string, localPath: string){
+    return new Promise(
+      async (
+        resolve: (value: string) => void,
+        reject: (reason: Error) => void
+      ) => {
+        const zipFile = remotePath + '_' + Date.now() + '.zip';
+        const zip = new AdmZip();
+        const sourcePath = path.join(localPath, path.basename(zipFile));
+        const targetPath = sourcePath.substr(0, sourcePath.length-4);
+        try {
+          const writeZipPromisify = util.promisify(zip.writeZip);  
+          await zip.addLocalFolder(remotePath);  
+          await writeZipPromisify(zipFile);
+          await FileSystem.transferFile(zipFile, localPath);
+          await vscode.commands.executeCommand('iotcube.unzipFile', sourcePath, targetPath);
+        } catch (err) {
+          reject(err);
+          return;
+        }
+        try {
+          // Delete compressed folder in container.
+          const unlinkPromisify = util.promisify(fs.unlink);
+          await unlinkPromisify(zipFile);
+        } catch (err) {
+          // This error does not affect folder-transfer so it does not invoke reject.
+          console.log("Failed to delete compressed folder in container: " + err);
+        }
+        resolve(targetPath);
+      }
+    );   
   }
 
   static async writeFile(localPath: string, data: string | Buffer) {
@@ -252,10 +287,20 @@ export class SSH {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
     }
+    const tempFolder = (await vscode.commands.executeCommand(
+      'iotcube.fsGetTempDir'
+    )) as string;
+    var tempFolderPath;
+    try{
+      tempFolderPath = await FileSystem.transferFolder(localFolderPath, tempFolder);
+    } catch (err) {
+      throw new Error('Failed to transfer folder from container to local machine: ' + err);
+    }
+
     return (await vscode.commands.executeCommand(
       'iotcube.sshUploadFolder',
       this._id,
-      localFolderPath,
+      tempFolderPath,
       remoteFolderPath
     )) as void;
   }
