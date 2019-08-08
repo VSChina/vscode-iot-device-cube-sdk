@@ -27,6 +27,7 @@
     "vscode": "^1.1.34"
   },
   "dependencies": {
-    "adm-zip": "^0.4.13"
+    "adm-zip": "^0.4.13",
+    "util": "^0.12.1"
   }
 }

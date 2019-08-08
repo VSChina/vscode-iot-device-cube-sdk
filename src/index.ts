@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EventEmitter } from 'events';
-import * as adm_zip from 'adm-zip';
+import * as util from 'util';
+import * as AdmZip from 'adm-zip';
 
 interface DeviceInfo {
   id: string;
@@ -87,26 +88,28 @@ export class FileSystem {
         reject: (reason: Error) => void
       ) => {
         const zipFile = remotePath + '_' + Date.now() + '.zip';
-        const zip = new adm_zip();
-        var sourcePath, targetPath;
-        try{
+        const zip = new AdmZip();
+        const sourcePath = path.join(localPath, path.basename(zipFile));
+        const targetPath = sourcePath.substr(0, sourcePath.length-4);
+        try {
+          const writeZipPromisify = util.promisify(zip.writeZip);  
           await zip.addLocalFolder(remotePath);  
-          await zip.writeZip(zipFile);
+          await writeZipPromisify(zipFile);
           await FileSystem.transferFile(zipFile, localPath);
-          sourcePath = path.join(localPath, path.basename(zipFile));
-          targetPath = sourcePath.substr(0, sourcePath.length-4);
           await vscode.commands.executeCommand('iotcube.unzipFile', sourcePath, targetPath);
-          //delete zip file in container
-          fs.unlink(zipFile, function(err) {
-            if (err) {
-              vscode.window.showWarningMessage("Failed to delete zip file in container");
-            }
-          });
-          resolve(targetPath);  
         } catch (err) {
           reject(err);
           return;
         }
+        try {
+          // Delete compressed folder in container.
+          const unlinkPromisify = util.promisify(fs.unlink);
+          await unlinkPromisify(zipFile);
+        } catch (err) {
+          // This error does not affect folder-transfer so it does not invoke reject.
+          console.log("Failed to delete compressed folder in container: " + err);
+        }
+        resolve(targetPath);
       }
     );   
   }
