@@ -19,12 +19,22 @@ interface Volume {
 }
 
 interface PortOption {
-  baudRate?: number | undefined;
+  baudRate?: number;
   dataBits?: number;
   stopBits?: number;
   xon?: boolean;
   xoff?: boolean;
   parity?: string;
+}
+
+export interface ComPort {
+  comName: string,
+  productId?: string,
+  vendorId?: string
+}
+
+interface PortListJson {
+  portList: ComPort[]
 }
 
 export class SerialPort {
@@ -34,16 +44,16 @@ export class SerialPort {
     )) as string;
   }
 
-  static async getComList() {
+  static async getComList(): Promise<PortListJson> {
     return new Promise(
       async (
-        resolve: (value: string) => void,
+        resolve: (value: PortListJson) => void,
         reject: (reason: Error) => void
       ) => {
         try {
           const ports = await vscode.commands.executeCommand(
             'iotcube.serialportGetComList'
-          ) as string;
+          ) as PortListJson;
           resolve(ports);
         } catch (err) {
           reject(err);
