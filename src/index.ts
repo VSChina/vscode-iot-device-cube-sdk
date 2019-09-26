@@ -18,6 +18,108 @@ interface Volume {
   name?: string | undefined;
 }
 
+interface PortOption {
+  baudRate?: number;
+  dataBits?: number;
+  stopBits?: number;
+  xon?: boolean;
+  xoff?: boolean;
+  parity?: string;
+}
+
+export interface ComPort {
+  comName: string;
+  productId?: string;
+  vendorId?: string;
+}
+
+interface PortListJson {
+  portList: ComPort[];
+}
+
+export class SerialPort {
+  static async getPlatform() {
+    return (await vscode.commands.executeCommand(
+      'iotcube.serialportGetPlatform'
+    )) as string;
+  }
+
+  static async getComList(): Promise<PortListJson> {
+    return new Promise(
+      async (
+        resolve: (value: PortListJson) => void,
+        reject: (reason: Error) => void
+      ) => {
+        try {
+          const ports = await vscode.commands.executeCommand(
+            'iotcube.serialportGetComList'
+          ) as PortListJson;
+          resolve(ports);
+        } catch (err) {
+          reject(err);
+        }
+      }
+    );
+  }
+
+  static async open(comPort: string, option: PortOption) {
+    return new Promise(
+      async (
+        resolve: () => void,
+        reject: (reason: Error) => void
+      ) => {
+        try {
+          await vscode.commands.executeCommand(
+            'iotcube.serialportOpen',
+            comPort,
+            option
+          );
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }
+    );
+  }
+
+  static async send(payload: string) {
+    return new Promise(
+      async (
+        resolve: () => void,
+        reject: (reason: Error) => void
+      ) => {
+        try {
+          await vscode.commands.executeCommand(
+            'iotcube.serialportSend',
+            payload
+          );
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }
+    );
+  }
+
+  static async close() {
+    return new Promise(
+      async (
+        resolve: () => void,
+        reject: (value: Error) => void 
+      ) => {
+        try {
+          await vscode.commands.executeCommand(
+            'iotcube.serialportClose'
+          );
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }
+    );
+  }
+}
+
 export class FileSystem {
   static async listVolume() {
     return (await vscode.commands.executeCommand(

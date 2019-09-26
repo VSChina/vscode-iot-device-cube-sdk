@@ -1,6 +1,6 @@
 {
   "name": "vscode-iot-device-cube-sdk",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "SDK to access API of vscode utility extension to access to physical devices",
   "main": "out/src/index.js",
   "engines": {
@@ -24,7 +24,7 @@
     "@types/node": "^12.0.10",
     "gts": "^1.0.0",
     "typescript": "~3.4.0",
-    "vscode": "^1.1.34"
+    "vscode": "^1.1.36"
   },
   "dependencies": {
     "adm-zip": "^0.4.13",
