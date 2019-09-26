@@ -28,13 +28,13 @@ interface PortOption {
 }
 
 export interface ComPort {
-  comName: string,
-  productId?: string,
-  vendorId?: string
+  comName: string;
+  productId?: string;
+  vendorId?: string;
 }
 
 interface PortListJson {
-  portList: ComPort[]
+  portList: ComPort[];
 }
 
 export class SerialPort {
