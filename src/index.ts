@@ -121,6 +121,7 @@ export class SerialPort {
 }
 
 export class FileSystem {
+  // list all volumes on local machine
   static async listVolume() {
     return (await vscode.commands.executeCommand(
       'iotcube.fsListVolume'
@@ -149,6 +150,8 @@ export class FileSystem {
     )) as void;
   }
 
+  // remotePath: path of file to transfer in container
+  // localPath: path to save the transferred file on local machine
   static async transferFile(remotePath: string, localPath: string) {
     return new Promise(
       async (
@@ -183,6 +186,8 @@ export class FileSystem {
     );
   }
 
+  // remotePath: path of folder to transfer in container;
+  // localPath: path to save the transferred folder on local machine
   static async transferFolder(remotePath: string, localPath: string){
     return new Promise(
       async (
@@ -216,6 +221,7 @@ export class FileSystem {
     );   
   }
 
+  // localPath: path to write the data to on local machine
   static async writeFile(localPath: string, data: string | Buffer) {
     return new Promise(async (resolve: (value: void) => void) => {
       const transferFileCallbackName = (await vscode.commands.executeCommand(
@@ -367,6 +373,8 @@ export class SSH {
     )) as string;
   }
 
+  // localPath: path of file to upload on local machine
+  // remotePath: path to save the uploaded file on device such as Raspberry Pi
   async uploadFile(localPath: string, remotePath: string) {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
@@ -385,6 +393,8 @@ export class SSH {
     )) as void;
   }
 
+  // localFolderPath: path of folder to upload on local machine
+  // remoteFolderPath: path to save the uploaded folder on device such as Raspberry Pi
   async uploadFolder(localFolderPath: string, remoteFolderPath: string) {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
