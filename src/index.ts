@@ -121,6 +121,9 @@ export class SerialPort {
 }
 
 export class FileSystem {
+  /**
+   * List all volumes on host machine.
+   */
   static async listVolume() {
     return (await vscode.commands.executeCommand(
       'iotcube.fsListVolume'
@@ -149,6 +152,11 @@ export class FileSystem {
     )) as void;
   }
 
+  /**
+   * Transfer file from container to host machine.
+   * @param remotePath file path in container workspace.
+   * @param localPath file path in host machine.
+   */
   static async transferFile(remotePath: string, localPath: string) {
     return new Promise(
       async (
@@ -183,6 +191,11 @@ export class FileSystem {
     );
   }
 
+  /**
+   * Transfer folder from container to host machine.
+   * @param remotePath folder path in container workspace.
+   * @param localPath folder path in host machine.
+   */
   static async transferFolder(remotePath: string, localPath: string){
     return new Promise(
       async (
@@ -216,6 +229,11 @@ export class FileSystem {
     );   
   }
 
+  /**
+   * In remote mode, write data to file in host machine.
+   * @param localPath destination file path in host machine.
+   * @param data data to write into file.
+   */
   static async writeFile(localPath: string, data: string | Buffer) {
     return new Promise(async (resolve: (value: void) => void) => {
       const transferFileCallbackName = (await vscode.commands.executeCommand(
@@ -367,6 +385,11 @@ export class SSH {
     )) as string;
   }
 
+  /**
+   * Upload file from container to target device.
+   * @param localPath file path in host machine.
+   * @param remotePath file path on target device.
+   */
   async uploadFile(localPath: string, remotePath: string) {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
@@ -385,6 +408,11 @@ export class SSH {
     )) as void;
   }
 
+  /**
+   * Upload folder from container to target device.
+   * @param localFolderPath folder path in host machine.
+   * @param remoteFolderPath folder path on target device.
+   */
   async uploadFolder(localFolderPath: string, remoteFolderPath: string) {
     if (this._id === null) {
       throw new Error('You must open an SSH connection before upload files.');
