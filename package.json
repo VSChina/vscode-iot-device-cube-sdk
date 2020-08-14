@@ -11,23 +11,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sneezry/vscode-iot-device-cube-sdk.git"
+    "url": "https://github.com/VSChina/vscode-iot-device-cube-sdk.git"
   },
-  "author": "Zhe Li",
+  "author": "vsc-npm",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Sneezry/vscode-iot-device-cube-sdk/issues"
+    "url": "https://github.com/VSChina/vscode-iot-device-cube-sdk/issues"
   },
-  "homepage": "https://github.com/Sneezry/vscode-iot-device-cube-sdk#readme",
+  "homepage": "https://github.com/VSChina/vscode-iot-device-cube-sdk#readme",
   "devDependencies": {
-    "@types/adm-zip": "^0.4.32",
-    "@types/node": "^12.0.10",
-    "gts": "^1.0.0",
-    "typescript": "~3.4.0",
-    "vscode": "^1.1.36"
+    "@types/adm-zip": "^0.4.33",
+    "@types/node": "^12.12.54",
+    "@types/vscode": "^1.48.0",
+    "gts": "^2.0.2",
+    "typescript": "~3.4.0"
   },
   "dependencies": {
-    "adm-zip": "^0.4.13",
-    "util": "^0.12.1"
+    "adm-zip": "^0.4.16",
+    "util": "^0.12.3"
   }
 }
