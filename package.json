@@ -23,7 +23,6 @@
     "@types/adm-zip": "^0.4.33",
     "@types/node": "^12.12.54",
     "@types/vscode": "^1.48.0",
-    "gts": "^2.0.2",
     "typescript": "~3.4.0"
   },
   "dependencies": {
